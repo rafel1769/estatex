@@ -1,0 +1,109 @@
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require("fs");
+
+const app = express();
+const PORT = 3000;
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+const DB_FILE = "db.json";
+
+// база
+function readDB() {
+  if (!fs.existsSync(DB_FILE)) {
+    return { users: [], ads: [] };
+  }
+  return JSON.parse(fs.readFileSync(DB_FILE));
+}
+
+function writeDB(data) {
+  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+}
+
+// главная
+app.get("/", (req, res) => {
+  const db = readDB();
+  const ads = db.ads || [];
+
+  let html = `
+  <html>
+  <head>
+    <title>ESTATEX</title>
+  </head>
+  <body style="background:#0b1e2d;color:white;font-family:sans-serif">
+    <h1>🚀 ESTATEX</h1>
+
+    <form action="/add" method="POST">
+      <input name="title" placeholder="Название" required>
+      <input name="price" placeholder="Цена" required>
+      <button>Создать</button>
+    </form>
+
+    <h2>Объявления</h2>
+  `;
+
+  ads.forEach(ad => {
+    html += `
+      <div style="border:1px solid white;margin:10px;padding:10px">
+        <b>${ad.title}</b><br>
+        💰 ${ad.price}<br>
+        ⭐ ${ad.likes}<br>
+
+        <form action="/like/${ad.id}" method="POST">
+          <button>👍</button>
+        </form>
+
+        <form action="/delete/${ad.id}" method="POST">
+          <button>❌</button>
+        </form>
+      </div>
+    `;
+  });
+
+  html += `</body></html>`;
+  res.send(html);
+});
+
+// добавить
+app.post("/add", (req, res) => {
+  const { title, price } = req.body;
+  const db = readDB();
+
+  db.ads.push({
+    id: Date.now(),
+    title,
+    price,
+    likes: 0
+  });
+
+  writeDB(db);
+  res.redirect("/");
+});
+
+// лайк
+app.post("/like/:id", (req, res) => {
+  const db = readDB();
+
+  const ad = db.ads.find(a => a.id == req.params.id);
+  if (ad) ad.likes++;
+
+  writeDB(db);
+  res.redirect("/");
+});
+
+// удалить
+app.post("/delete/:id", (req, res) => {
+  const db = readDB();
+
+  db.ads = db.ads.filter(a => a.id != req.params.id);
+
+  writeDB(db);
+  res.redirect("/");
+});
+
+// старт
+app.listen(PORT, () => {
+  console.log("🚀 Server started on http://localhost:" + PORT);
+});
