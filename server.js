@@ -5,7 +5,7 @@ const app = express();
 
 app.use(express.json());
 
-// Хранилище (в памяти)
+// Хранилище (только числа!)
 let listings = [
   { id: 1, title: "Квартира", price: 50000 },
   { id: 2, title: "Дом", price: 120000 }
@@ -30,9 +30,9 @@ app.post("/listings", (req, res) => {
   }
 
   const newItem = {
-    id: listings.length + 1,
+    id: Number(listings.length + 1), // 👈 гарантируем число
     title,
-    price
+    price: Number(price) // 👈 тоже число
   };
 
   listings.push(newItem);
