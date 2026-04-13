@@ -1,30 +1,62 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html>
 <head>
 <meta charset="UTF-8">
-<title>ESTATEX</title>
-</head>
-<body>
+<title>ESTATEX</title><style>
+body {
+  font-family: Arial, sans-serif;
+  padding: 15px;
+  background: #f2f2f2;
+}
 
-<h1>🏠 ESTATEX</h1>
+h1 {
+  text-align: center;
+}
 
-<button onclick="loadListings()">📄 Показать объявления</button>
+button {
+  padding: 10px;
+  margin: 5px 0;
+  cursor: pointer;
+  border: none;
+  background: #007bff;
+  color: white;
+  border-radius: 5px;
+}
 
-<ul id="list"></ul>
+button:hover {
+  background: #0056b3;
+}
 
-<hr>
+input {
+  display: block;
+  margin: 5px 0;
+  padding: 10px;
+  width: 100%;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
 
-<h3>➕ Добавить объявление</h3>
+li {
+  background: white;
+  margin: 10px 0;
+  padding: 12px;
+  border-radius: 8px;
+  list-style: none;
+}
 
-<input id="title" placeholder="Название">
+.delete-btn {
+  background: red;
+}
+</style></head>
+<body><h1>🏠 ESTATEX</h1><button onclick="loadListings()">📄 Показать объявления</button>
+
+<ul id="list"></ul><hr><h3>➕ Добавить объявление</h3><input id="title" placeholder="Название">
 <input id="price" type="number" placeholder="Цена">
 <input id="city" placeholder="Город">
-<input id="description" placeholder="Описание">
-
-<button onclick="addListing()">Добавить</button>
+<input id="description" placeholder="Описание"><button onclick="addListing()">Добавить</button>
 
 <script>
 
+// загрузка объявлений
 async function loadListings() {
   const res = await fetch("/listings");
   const data = await res.json();
@@ -42,7 +74,9 @@ async function loadListings() {
     `;
 
     const btn = document.createElement("button");
-    btn.innerText = "❌";
+    btn.innerText = "❌ Удалить";
+    btn.className = "delete-btn";
+
     btn.onclick = async () => {
       await fetch("/listings/" + item.id, {
         method: "DELETE"
@@ -55,6 +89,7 @@ async function loadListings() {
   });
 }
 
+// добавление объявления
 async function addListing() {
   const title = document.getElementById("title").value;
   const price = Number(document.getElementById("price").value);
@@ -79,10 +114,14 @@ async function addListing() {
     })
   });
 
+  // очистка
+  document.getElementById("title").value = "";
+  document.getElementById("price").value = "";
+  document.getElementById("city").value = "";
+  document.getElementById("description").value = "";
+
   loadListings();
 }
 
-</script>
-
-</body>
+</script></body>
 </html>
