@@ -4,18 +4,17 @@ const mongoose = require("mongoose");
 const app = express();
 
 app.use(express.json());
-app.use(express.static("."));
+app.use(express.static(".", { etag: false }));
 
-// 🔥 ТВОЯ БАЗА (уже вставил)
+// 🔗 MongoDB
 const MONGO_URL = "mongodb+srv://admin:admin1234@cluster0.6egosvb.mongodb.net/estatex";
 
-// 🔗 Подключение к MongoDB
 mongoose.connect(MONGO_URL)
   .then(() => console.log("✅ MongoDB подключена"))
-  .catch(err => console.log("❌ Ошибка MongoDB", err));
+  .catch(err => console.log("❌ Ошибка MongoDB:", err));
 
 
-// 📦 СХЕМА (как будет храниться объявление)
+// 📦 СХЕМА
 const ListingSchema = new mongoose.Schema({
   title: String,
   price: Number,
@@ -32,23 +31,33 @@ app.get("/", (req, res) => {
 });
 
 
-// 📄 Получить все объявления
+// 📄 Получить все
 app.get("/listings", async (req, res) => {
-  const listings = await Listing.find();
-  res.json(listings);
+  try {
+    const listings = await Listing.find().sort({ _id: -1 });
+    res.json(listings);
+  } catch (err) {
+    res.status(500).json({ error: "Ошибка загрузки" });
+  }
 });
 
 
-// ➕ Добавить объявление
+// ➕ Добавить
 app.post("/listings", async (req, res) => {
   try {
-    const { title, price, city, description } = req.body;
+    let { title, price, city, description } = req.body;
+
+    if (!title || !price) {
+      return res.status(400).json({ error: "Нет данных" });
+    }
+
+    price = Number(price);
 
     const newListing = new Listing({
       title,
       price,
-      city,
-      description
+      city: city || "",
+      description: description || ""
     });
 
     await newListing.save();
@@ -56,15 +65,20 @@ app.post("/listings", async (req, res) => {
     res.json(newListing);
 
   } catch (err) {
-    res.status(500).json({ error: "Ошибка" });
+    console.log("❌ Ошибка:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
   }
 });
 
 
 // ❌ Удалить
 app.delete("/listings/:id", async (req, res) => {
-  await Listing.findByIdAndDelete(req.params.id);
-  res.json({ message: "Удалено" });
+  try {
+    await Listing.findByIdAndDelete(req.params.id);
+    res.json({ message: "Удалено" });
+  } catch (err) {
+    res.status(500).json({ error: "Ошибка удаления" });
+  }
 });
 
 
