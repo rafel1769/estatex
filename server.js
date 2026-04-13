@@ -1,73 +1,62 @@
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs");
+const mongoose = require("mongoose");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// подключение к MongoDB
+mongoose.connect("mongodb+srv://admin:admin1234@cluster0.6egosvb.mongodb.net/estatex?retryWrites=true&w=majority")
+  .then(() => console.log("MongoDB подключен"))
+  .catch(err => console.log(err));
+
+// middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-const FILE = "data.json";
+// схема
+const listingSchema = new mongoose.Schema({
+  title: String,
+  price: Number,
+  city: String,
+  description: String
+});
 
-// читаем файл
-function readData() {
-  try {
-    const data = fs.readFileSync(FILE);
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
-}
-
-// записываем файл
-function writeData(data) {
-  fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
-}
+const Listing = mongoose.model("Listing", listingSchema);
 
 // получить все
-app.get("/listings", (req, res) => {
-  const listings = readData();
-  res.json(listings);
+app.get("/listings", async (req, res) => {
+  const data = await Listing.find();
+  res.json(data);
 });
 
 // добавить
-app.post("/listings", (req, res) => {
+app.post("/listings", async (req, res) => {
   const { title, price, city, description } = req.body;
 
   if (!title || !price) {
     return res.status(400).json({ error: "Заполни название и цену" });
   }
 
-  const listings = readData();
-
-  const newItem = {
-    id: Date.now(),
+  const newItem = new Listing({
     title,
     price,
     city: city || "-",
     description: description || "-"
-  };
+  });
 
-  listings.push(newItem);
-  writeData(listings);
-
+  await newItem.save();
   res.json(newItem);
 });
 
 // удалить
-app.delete("/listings/:id", (req, res) => {
-  const id = Number(req.params.id);
-
-  let listings = readData();
-  listings = listings.filter(item => item.id !== id);
-
-  writeData(listings);
-
+app.delete("/listings/:id", async (req, res) => {
+  await Listing.findByIdAndDelete(req.params.id);
   res.json({ success: true });
 });
 
+// запуск
 app.listen(PORT, () => {
   console.log("Server started on port " + PORT);
 });
