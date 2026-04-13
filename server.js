@@ -1,56 +1,54 @@
-require("dotenv").config();
+
 
 const express = require("express");
-const mongoose = require("mongoose");
-const path = require("path");
+const cors = require("cors");
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
+// middleware
+app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static(__dirname)); // важно!
 
-// 👉 ПОДКЛЮЧЕНИЕ К MONGODB
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("MongoDB подключена"))
-.catch(err => console.log(err));
+// память (без базы)
+let listings = [];
 
-// 👉 СХЕМА
-const Listing = mongoose.model("Listing", {
-  title: String,
-  price: Number,
-  city: String,
-  description: String
+// получить все
+app.get("/listings", (req, res) => {
+  res.json(listings);
 });
 
-// 👉 ПОЛУЧИТЬ ВСЕ
-app.get("/listings", async (req, res) => {
-  const data = await Listing.find();
-  res.json(data);
-});
+// добавить
+app.post("/listings", (req, res) => {
+  const { title, price, city, description } = req.body;
 
-// 👉 ДОБАВИТЬ
-app.post("/listings", async (req, res) => {
-  try {
-    const { title, price, city, description } = req.body;
-
-    const newItem = new Listing({
-      title,
-      price,
-      city,
-      description
-    });
-
-    await newItem.save();
-
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (!title || !price) {
+    return res.status(400).json({ error: "Заполни название и цену" });
   }
+
+  const newItem = {
+    id: Date.now(),
+    title,
+    price,
+    city: city || "-",
+    description: description || "-"
+  };
+
+  listings.push(newItem);
+  res.json(newItem);
 });
 
-// 👉 УДАЛИТЬ
-app.delete("/listings/:id", async (req, res) => {
-  await Listing.findByIdAndDelete(req.params.id);
+// удалить
+app.delete("/listings/:id", (req, res) => {
+  const id = Number(req.params.id);
+
+  listings = listings.filter(item => item.id !== id);
+
   res.json({ success: true });
 });
 
-app.listen(3000, () => console.log("Server работает"));
+// запуск
+app.listen(PORT, () => {
+  console.log("Server started on port " + PORT);
+});
