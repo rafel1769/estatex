@@ -2,53 +2,21 @@
 <html>
 <head>
   <title>ESTATEX</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #f5f5f5;
-      padding: 20px;
-    }
-
-    h1 {
-      color: #333;
-    }
-
-    button {
-      padding: 8px 12px;
-      margin: 5px;
-      border: none;
-      background: #007bff;
-      color: white;
-      border-radius: 5px;
-    }
-
-    input {
-      padding: 8px;
-      margin: 5px;
-    }
-
-    li {
-      background: white;
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 5px;
-    }
-  </style>
 </head>
 <body>
 
 <h1>🏠 ESTATEX</h1>
 
-<button onclick="loadListings()">📄 Показать объявления</button>
+<button onclick="loadListings()">Показать объявления</button>
 
 <ul id="list"></ul>
 
 <hr>
 
-<h3>➕ Добавить объявление</h3>
+<h3>Добавить объявление</h3>
 
 <input id="title" placeholder="Название">
-<input id="price" placeholder="Цена" type="number">
+<input id="price" type="number" placeholder="Цена">
 <input id="city" placeholder="Город">
 <input id="description" placeholder="Описание">
 
@@ -66,13 +34,13 @@ async function loadListings() {
     const li = document.createElement("li");
 
     li.innerHTML = `
-      <b>${item.title}</b> — $${item.price} <br>
-      📍 ${item.city || "-"} <br>
-      📝 ${item.description || "-"}
+      <b>${item.title}</b> — $${item.price}<br>
+      📍 ${item.city}<br>
+      📝 ${item.description}
     `;
 
     const btn = document.createElement("button");
-    btn.innerText = "❌";
+    btn.innerText = "Удалить";
     btn.onclick = () => deleteListing(item._id);
 
     li.appendChild(btn);
@@ -82,16 +50,26 @@ async function loadListings() {
 
 async function addListing() {
   const title = document.getElementById("title").value;
-  const price = Number(document.getElementById("price").value);
+  const price = document.getElementById("price").value;
   const city = document.getElementById("city").value;
   const description = document.getElementById("description").value;
+
+  if (!title || !price || !city) {
+    alert("Заполни все поля");
+    return;
+  }
 
   await fetch("/listings", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ title, price, city, description })
+    body: JSON.stringify({
+      title,
+      price,
+      city,
+      description
+    })
   });
 
   loadListings();
