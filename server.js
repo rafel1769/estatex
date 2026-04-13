@@ -5,22 +5,21 @@ const app = express();
 
 app.use(express.json());
 
-// Главная страница
+// главная
 app.get("/", (req, res) => {
   res.send("🚀 ESTATEX работает!");
 });
 
-// ВАЖНО — маршрут listings
+// listings
 app.get("/listings", (req, res) => {
   res.json([
-    { id: 1, title: "Квартира в Ташкенте", price: 50000 },
-    { id: 2, title: "Дом в Самарканде", price: 80000 }
+    { id: 1, title: "Квартира", price: 50000 },
+    { id: 2, title: "Дом", price: 80000 }
   ]);
 });
 
-// Порт
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
+  console.log("Server started");
 });
