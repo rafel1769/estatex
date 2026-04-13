@@ -26,39 +26,33 @@
 <script>
 
 async function loadListings() {
-  try {
-    const res = await fetch("/listings");
-    const data = await res.json();
+  const res = await fetch("/listings");
+  const data = await res.json();
 
-    const list = document.getElementById("list");
-    list.innerHTML = "";
+  const list = document.getElementById("list");
+  list.innerHTML = "";
 
-    data.forEach(item => {
-      const li = document.createElement("li");
+  data.forEach(item => {
+    const li = document.createElement("li");
 
-      li.innerHTML = `
-        <b>${item.title}</b> — $${item.price}<br>
-        📍 ${item.city || "-"}<br>
-        📝 ${item.description || "-"}
-      `;
+    li.innerHTML = `
+      <b>${item.title}</b> — $${item.price}<br>
+      📍 ${item.city || "-"}<br>
+      📝 ${item.description || "-"}
+    `;
 
-      const btn = document.createElement("button");
-      btn.innerText = "❌";
-      btn.onclick = async () => {
-        await fetch("/listings/" + item.id, {
-          method: "DELETE"
-        });
-        loadListings();
-      };
+    const btn = document.createElement("button");
+    btn.innerText = "❌";
+    btn.onclick = async () => {
+      await fetch("/listings/" + item.id, {
+        method: "DELETE"
+      });
+      loadListings();
+    };
 
-      li.appendChild(btn);
-      list.appendChild(li);
-    });
-
-  } catch (e) {
-    alert("Ошибка загрузки");
-    console.log(e);
-  }
+    li.appendChild(btn);
+    list.appendChild(li);
+  });
 }
 
 async function addListing() {
@@ -72,32 +66,20 @@ async function addListing() {
     return;
   }
 
-  try {
-    await fetch("/listings", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        title,
-        price,
-        city,
-        description
-      })
-    });
+  await fetch("/listings", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      title,
+      price,
+      city,
+      description
+    })
+  });
 
-    // очистка полей
-    document.getElementById("title").value = "";
-    document.getElementById("price").value = "";
-    document.getElementById("city").value = "";
-    document.getElementById("description").value = "";
-
-    loadListings();
-
-  } catch (e) {
-    alert("Ошибка добавления");
-    console.log(e);
-  }
+  loadListings();
 }
 
 </script>
