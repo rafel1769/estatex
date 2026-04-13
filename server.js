@@ -1,6 +1,8 @@
+require("dotenv").config();
+
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
+const mongoose = require("mongoose");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -8,19 +10,22 @@ const PORT = process.env.PORT || 3000;
 // middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname)); // ВАЖНО для index.html
+app.use(express.static(__dirname));
 
 // MongoDB подключение
-mongoose.connect("mongodb+srv://admin:admin1234@cluster0.6egosvb.mongodb.net/estatex?retryWrites=true&w=majority")
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
 .then(() => console.log("MongoDB подключен"))
-.catch(err => console.error("Ошибка MongoDB:", err));
+.catch(err => console.log("Ошибка MongoDB:", err));
 
 // схема
 const listingSchema = new mongoose.Schema({
   title: String,
   price: Number,
   city: String,
-  description: String
+  description: String,
 });
 
 const Listing = mongoose.model("Listing", listingSchema);
@@ -31,22 +36,14 @@ app.get("/listings", async (req, res) => {
     const data = await Listing.find();
     res.json(data);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Ошибка получения данных" });
   }
 });
 
-// POST (исправленный)
+// POST
 app.post("/listings", async (req, res) => {
   try {
-    if (!req.body) {
-      return res.status(400).json({ error: "Нет данных" });
-    }
-
-    const title = req.body.title;
-    const price = req.body.price;
-    const city = req.body.city;
-    const description = req.body.description;
+    const { title, price, city, description } = req.body;
 
     if (!title || !price) {
       return res.status(400).json({ error: "Заполни название и цену" });
@@ -56,15 +53,13 @@ app.post("/listings", async (req, res) => {
       title,
       price,
       city,
-      description
+      description,
     });
 
     await newItem.save();
-
     res.json(newItem);
-
   } catch (err) {
-    console.error("Ошибка при добавлении:", err);
+    console.log("Ошибка при добавлении:", err);
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
@@ -75,12 +70,11 @@ app.delete("/listings/:id", async (req, res) => {
     await Listing.findByIdAndDelete(req.params.id);
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Ошибка удаления" });
   }
 });
 
-// запуск
+// запуск сервера
 app.listen(PORT, () => {
   console.log("Server started on port " + PORT);
 });
