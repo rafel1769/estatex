@@ -5,16 +5,12 @@ const app = express();
 
 app.use(express.json());
 
-// главная страница
+// Главная
 app.get("/", (req, res) => {
-  res.send(`
-    <h1>🏠 ESTATEX</h1>
-    <p>Платформа недвижимости</p>
-    <a href="/listings">Смотреть объявления</a>
-  `);
+  res.send("🚀 ESTATEX работает!");
 });
 
-// listings (ВАЖНО!)
+// Listings (главный маршрут)
 app.get("/listings", (req, res) => {
   res.json([
     { id: 1, title: "Квартира", price: 50000 },
@@ -22,6 +18,7 @@ app.get("/listings", (req, res) => {
   ]);
 });
 
+// PORT для Render
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
