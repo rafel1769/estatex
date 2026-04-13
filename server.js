@@ -7,8 +7,8 @@ const PORT = process.env.PORT || 3000;
 
 // подключение к MongoDB
 mongoose.connect("mongodb+srv://admin:admin1234@cluster0.6egosvb.mongodb.net/estatex?retryWrites=true&w=majority")
-  .then(() => console.log("MongoDB подключен"))
-  .catch(err => console.log(err));
+.then(() => console.log("MongoDB подключен"))
+.catch(err => console.log(err));
 
 // middleware
 app.use(cors());
