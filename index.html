@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>ESTATEX</title>
+<meta charset="UTF-8">
+<title>ESTATEX</title>
 </head>
 <body>
 
@@ -24,32 +24,41 @@
 <button onclick="addListing()">Добавить</button>
 
 <script>
+
 async function loadListings() {
-  const res = await fetch("/listings");
-  const data = await res.json();
+  try {
+    const res = await fetch("/listings");
+    const data = await res.json();
 
-  const list = document.getElementById("list");
-  list.innerHTML = "";
+    const list = document.getElementById("list");
+    list.innerHTML = "";
 
-  data.forEach(item => {
-    const li = document.createElement("li");
+    data.forEach(item => {
+      const li = document.createElement("li");
 
-    li.innerHTML = `
-      <b>${item.title}</b> - $${item.price} <br>
-      📍 ${item.city} <br>
-      📝 ${item.description}
-    `;
+      li.innerHTML = `
+        <b>${item.title}</b> — $${item.price}<br>
+        📍 ${item.city || "-"}<br>
+        📝 ${item.description || "-"}
+      `;
 
-    const btn = document.createElement("button");
-    btn.innerText = "❌";
-    btn.onclick = async () => {
-      await fetch("/listings/" + item.id, { method: "DELETE" });
-      loadListings();
-    };
+      const btn = document.createElement("button");
+      btn.innerText = "❌";
+      btn.onclick = async () => {
+        await fetch("/listings/" + item.id, {
+          method: "DELETE"
+        });
+        loadListings();
+      };
 
-    li.appendChild(btn);
-    list.appendChild(li);
-  });
+      li.appendChild(btn);
+      list.appendChild(li);
+    });
+
+  } catch (e) {
+    alert("Ошибка загрузки");
+    console.log(e);
+  }
 }
 
 async function addListing() {
@@ -58,14 +67,39 @@ async function addListing() {
   const city = document.getElementById("city").value;
   const description = document.getElementById("description").value;
 
-  await fetch("/listings", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title, price, city, description })
-  });
+  if (!title || !price) {
+    alert("Заполни название и цену");
+    return;
+  }
 
-  loadListings();
+  try {
+    await fetch("/listings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        title,
+        price,
+        city,
+        description
+      })
+    });
+
+    // очистка полей
+    document.getElementById("title").value = "";
+    document.getElementById("price").value = "";
+    document.getElementById("city").value = "";
+    document.getElementById("description").value = "";
+
+    loadListings();
+
+  } catch (e) {
+    alert("Ошибка добавления");
+    console.log(e);
+  }
 }
+
 </script>
 
 </body>
