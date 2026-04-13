@@ -5,23 +5,23 @@ const app = express();
 
 app.use(express.json());
 
-// 📦 Хранилище (в памяти)
+// Хранилище (в памяти)
 let listings = [
   { id: 1, title: "Квартира", price: 50000 },
   { id: 2, title: "Дом", price: 120000 }
 ];
 
-// 🔥 Главная
+// Главная
 app.get("/", (req, res) => {
-  res.send("🚀 ESTATEX работает!");
+  res.send("🚀 Estatex работает!");
 });
 
-// 📄 Получить все объявления
+// Получить все объявления
 app.get("/listings", (req, res) => {
   res.json(listings);
 });
 
-// ➕ Добавить объявление
+// Добавить объявление
 app.post("/listings", (req, res) => {
   const { title, price } = req.body;
 
@@ -36,36 +36,11 @@ app.post("/listings", (req, res) => {
   };
 
   listings.push(newItem);
+
   res.json(newItem);
 });
 
-// ❌ Удалить объявление
-app.delete("/listings/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-
-  listings = listings.filter(item => item.id !== id);
-
-  res.json({ message: "Удалено" });
-});
-
-// ✏️ Обновить объявление
-app.put("/listings/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const { title, price } = req.body;
-
-  const item = listings.find(i => i.id === id);
-
-  if (!item) {
-    return res.status(404).json({ error: "Не найдено" });
-  }
-
-  if (title) item.title = title;
-  if (price) item.price = price;
-
-  res.json(item);
-});
-
-// 🌍 PORT для Render
+// Порт
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
