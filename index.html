@@ -2,18 +2,50 @@
 <html>
 <head>
   <title>ESTATEX</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    button {
+      padding: 8px 12px;
+      margin: 5px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 5px;
+    }
+
+    input {
+      padding: 8px;
+      margin: 5px;
+    }
+
+    li {
+      background: white;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
 
 <h1>🏠 ESTATEX</h1>
 
-<button onclick="loadListings()">Показать объявления</button>
+<button onclick="loadListings()">📄 Показать объявления</button>
 
 <ul id="list"></ul>
 
 <hr>
 
-<h3>Добавить объявление</h3>
+<h3>➕ Добавить объявление</h3>
 
 <input id="title" placeholder="Название">
 <input id="price" placeholder="Цена" type="number">
@@ -29,10 +61,10 @@ async function loadListings() {
 
   data.forEach(item => {
     const li = document.createElement("li");
-    li.innerText = item.title + " - $" + item.price;
+    li.innerText = item.title + " — $" + item.price;
 
     const btn = document.createElement("button");
-    btn.innerText = "Удалить";
+    btn.innerText = "❌";
     btn.onclick = () => deleteListing(item.id);
 
     li.appendChild(btn);
@@ -44,6 +76,11 @@ async function addListing() {
   const title = document.getElementById("title").value;
   const price = Number(document.getElementById("price").value);
 
+  if (!title || !price) {
+    alert("Заполни поля!");
+    return;
+  }
+
   await fetch("/listings", {
     method: "POST",
     headers: {
@@ -51,6 +88,9 @@ async function addListing() {
     },
     body: JSON.stringify({ title, price })
   });
+
+  document.getElementById("title").value = "";
+  document.getElementById("price").value = "";
 
   loadListings();
 }
