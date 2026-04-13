@@ -1,48 +1,75 @@
 const express = require("express");
+const mongoose = require("mongoose");
+
 const app = express();
 
 app.use(express.json());
-app.use(express.static(".")); 
+app.use(express.static("."));
 
-let listings = [];
+// 🔥 ТВОЯ БАЗА (уже вставил)
+const MONGO_URL = "mongodb+srv://admin:admin1234@cluster0.6egosvb.mongodb.net/estatex";
 
-const getNextId = () => {
-  return listings.length
-    ? Math.max(...listings.map(item => item.id)) + 1
-    : 1;
-};
+// 🔗 Подключение к MongoDB
+mongoose.connect(MONGO_URL)
+  .then(() => console.log("✅ MongoDB подключена"))
+  .catch(err => console.log("❌ Ошибка MongoDB", err));
 
+
+// 📦 СХЕМА (как будет храниться объявление)
+const ListingSchema = new mongoose.Schema({
+  title: String,
+  price: Number,
+  city: String,
+  description: String
+});
+
+const Listing = mongoose.model("Listing", ListingSchema);
+
+
+// 🏠 Главная
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
-app.get("/listings", (req, res) => {
+
+// 📄 Получить все объявления
+app.get("/listings", async (req, res) => {
+  const listings = await Listing.find();
   res.json(listings);
 });
 
-app.post("/listings", (req, res) => {
-  const { title, price, location, description } = req.body;
 
-  const newItem = {
-    id: getNextId(),
-    title,
-    price,
-    location,
-    description
-  };
+// ➕ Добавить объявление
+app.post("/listings", async (req, res) => {
+  try {
+    const { title, price, city, description } = req.body;
 
-  listings.push(newItem);
-  res.json(newItem);
+    const newListing = new Listing({
+      title,
+      price,
+      city,
+      description
+    });
+
+    await newListing.save();
+
+    res.json(newListing);
+
+  } catch (err) {
+    res.status(500).json({ error: "Ошибка" });
+  }
 });
 
-app.delete("/listings/:id", (req, res) => {
-  const id = Number(req.params.id);
-  listings = listings.filter(item => item.id !== id);
+
+// ❌ Удалить
+app.delete("/listings/:id", async (req, res) => {
+  await Listing.findByIdAndDelete(req.params.id);
   res.json({ message: "Удалено" });
 });
+
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Сервер запущен на порту " + PORT);
+  console.log("🚀 Сервер запущен на порту " + PORT);
 });
