@@ -1,36 +1,39 @@
 const express = require("express");
+const path = require("path");
+
 const app = express();
 
 app.use(express.json());
+app.use(express.static(__dirname));
 
-// ✅ Главная страница
+// главная (на всякий случай)
 app.get("/", (req, res) => {
-  res.send("ESTATEX WORKING ✅");
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// 📦 Данные
+// данные
 let listings = [
   { id: 1, title: "Квартира", price: 50000 },
   { id: 2, title: "Дом", price: 120000 }
 ];
 
-// 🔢 Генерация ID
+// генерация ID
 const getNextId = () => {
   if (listings.length === 0) return 1;
   return Math.max(...listings.map(item => item.id)) + 1;
 };
 
-// 📥 Получить все
+// получить все
 app.get("/listings", (req, res) => {
   res.json(listings);
 });
 
-// ➕ Добавить
+// добавить
 app.post("/listings", (req, res) => {
   const { title, price } = req.body;
 
   if (!title || typeof price !== "number") {
-    return res.status(400).json({ error: "Нужны title и price (число)" });
+    return res.status(400).json({ error: "Нужны title и price" });
   }
 
   const newItem = {
@@ -43,7 +46,7 @@ app.post("/listings", (req, res) => {
   res.status(201).json(newItem);
 });
 
-// ❌ Удалить
+// удалить
 app.delete("/listings/:id", (req, res) => {
   const id = parseInt(req.params.id);
 
@@ -57,9 +60,8 @@ app.delete("/listings/:id", (req, res) => {
   res.json({ message: "Удалено" });
 });
 
-// 🚀 Запуск
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Server started on port " + PORT);
+  console.log("Server running on port " + PORT);
 });
