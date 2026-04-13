@@ -1,127 +1,84 @@
-<!DOCTYPE html><html>
+<!DOCTYPE html>
+<html>
 <head>
-<meta charset="UTF-8">
-<title>ESTATEX</title><style>
-body {
-  font-family: Arial, sans-serif;
-  padding: 15px;
-  background: #f2f2f2;
-}
+  <meta charset="UTF-8">
+  <title>ESTATEX</title>
+</head>
+<body>
 
-h1 {
-  text-align: center;
-}
+<h1>🏠 ESTATEX</h1>
 
-button {
-  padding: 10px;
-  margin: 5px 0;
-  cursor: pointer;
-  border: none;
-  background: #007bff;
-  color: white;
-  border-radius: 5px;
-}
+<button onclick="loadListings()">Показать объявления</button>
 
-button:hover {
-  background: #0056b3;
-}
+<div id="list"></div>
 
-input {
-  display: block;
-  margin: 5px 0;
-  padding: 10px;
-  width: 100%;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
+<hr>
 
-li {
-  background: white;
-  margin: 10px 0;
-  padding: 12px;
-  border-radius: 8px;
-  list-style: none;
-}
+<h2>Добавить объявление</h2>
 
-.delete-btn {
-  background: red;
-}
-</style></head>
-<body><h1>🏠 ESTATEX</h1><button onclick="loadListings()">📄 Показать объявления</button>
+<input placeholder="Название" id="title"><br>
+<input placeholder="Цена" id="price"><br>
+<input placeholder="Город" id="city"><br>
+<input placeholder="Описание" id="description"><br>
 
-<ul id="list"></ul><hr><h3>➕ Добавить объявление</h3><input id="title" placeholder="Название">
-<input id="price" type="number" placeholder="Цена">
-<input id="city" placeholder="Город">
-<input id="description" placeholder="Описание"><button onclick="addListing()">Добавить</button>
+<button onclick="addListing()">Добавить</button>
 
 <script>
+const API = "https://estatex-3bez.onrender.com";
 
-// загрузка объявлений
 async function loadListings() {
-  const res = await fetch("/listings");
+  const res = await fetch(API + "/listings");
   const data = await res.json();
 
   const list = document.getElementById("list");
   list.innerHTML = "";
 
   data.forEach(item => {
-    const li = document.createElement("li");
-
-    li.innerHTML = `
-      <b>${item.title}</b> — $${item.price}<br>
-      📍 ${item.city || "-"}<br>
-      📝 ${item.description || "-"}
+    list.innerHTML += `
+      <div>
+        <b>${item.title}</b> - $${item.price}<br>
+        📍 ${item.city}<br>
+        ✏️ ${item.description}<br>
+        <button onclick="deleteListing('${item._id}')">Удалить</button>
+        <hr>
+      </div>
     `;
-
-    const btn = document.createElement("button");
-    btn.innerText = "❌ Удалить";
-    btn.className = "delete-btn";
-
-    btn.onclick = async () => {
-      await fetch("/listings/" + item.id, {
-        method: "DELETE"
-      });
-      loadListings();
-    };
-
-    li.appendChild(btn);
-    list.appendChild(li);
   });
 }
 
-// добавление объявления
 async function addListing() {
   const title = document.getElementById("title").value;
-  const price = Number(document.getElementById("price").value);
+  const price = document.getElementById("price").value;
   const city = document.getElementById("city").value;
   const description = document.getElementById("description").value;
 
-  if (!title || !price) {
-    alert("Заполни название и цену");
-    return;
-  }
-
-  await fetch("/listings", {
+  const res = await fetch(API + "/listings", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
       title,
-      price,
+      price: Number(price),
       city,
       description
     })
   });
 
-  // очистка
-  document.getElementById("title").value = "";
-  document.getElementById("price").value = "";
-  document.getElementById("city").value = "";
-  document.getElementById("description").value = "";
+  const data = await res.json();
+  console.log(data);
 
   loadListings();
 }
 
-</script></body>
+async function deleteListing(id) {
+  await fetch(API + "/listings/" + id, {
+    method: "DELETE"
+  });
+
+  loadListings();
+}
+</script>
+
+</body>
 </html>
