@@ -5,44 +5,22 @@ const app = express();
 
 app.use(express.json());
 
-// тест
+// Главная страница
 app.get("/", (req, res) => {
   res.send("🚀 ESTATEX работает!");
 });
 
-// список объявлений
-let listings = [];
-
+// ВАЖНО — маршрут listings
 app.get("/listings", (req, res) => {
-  res.json(listings);
+  res.json([
+    { id: 1, title: "Квартира в Ташкенте", price: 50000 },
+    { id: 2, title: "Дом в Самарканде", price: 80000 }
+  ]);
 });
 
-// добавление объявления
-app.post("/listings", (req, res) => {
-  const newItem = {
-    id: Date.now(),
-    title: req.body.title,
-    price: req.body.price
-  };
-
-  listings.push(newItem);
-  res.json(newItem);
-});
-
-// порт
+// Порт
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Сервер запущен на порту " + PORT);
+  console.log(`Сервер запущен на порту ${PORT}`);
 });
-
-
-
-
-
-
-
-
-
-
-
