@@ -3,19 +3,63 @@ const app = express();
 
 app.use(express.json());
 
+// ✅ Главная страница
 app.get("/", (req, res) => {
-  res.send("OK");
+  res.send("ESTATEX WORKING ✅");
 });
 
+// 📦 Данные
+let listings = [
+  { id: 1, title: "Квартира", price: 50000 },
+  { id: 2, title: "Дом", price: 120000 }
+];
+
+// 🔢 Генерация ID
+const getNextId = () => {
+  if (listings.length === 0) return 1;
+  return Math.max(...listings.map(item => item.id)) + 1;
+};
+
+// 📥 Получить все
 app.get("/listings", (req, res) => {
-  res.json([
-    { id: 1, title: "Квартира", price: 50000 },
-    { id: 2, title: "Дом", price: 120000 }
-  ]);
+  res.json(listings);
 });
 
+// ➕ Добавить
+app.post("/listings", (req, res) => {
+  const { title, price } = req.body;
+
+  if (!title || typeof price !== "number") {
+    return res.status(400).json({ error: "Нужны title и price (число)" });
+  }
+
+  const newItem = {
+    id: getNextId(),
+    title,
+    price
+  };
+
+  listings.push(newItem);
+  res.status(201).json(newItem);
+});
+
+// ❌ Удалить
+app.delete("/listings/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const index = listings.findIndex(item => item.id === id);
+
+  if (index === -1) {
+    return res.status(404).json({ error: "Не найдено" });
+  }
+
+  listings.splice(index, 1);
+  res.json({ message: "Удалено" });
+});
+
+// 🚀 Запуск
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
+  console.log("Server started on port " + PORT);
 });
