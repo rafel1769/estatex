@@ -1,8 +1,8 @@
 require("dotenv").config();
 
 const express = require("express");
-const cors = require("cors");
 const mongoose = require("mongoose");
+const cors = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,36 +11,30 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// подключение MongoDB
+// MongoDB подключение (ИСПРАВЛЕНО)
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
 })
-.then(() => console.log("MongoDB подключен"))
-.catch(err => console.log("Ошибка MongoDB:", err));
+.then(() => console.log("✅ MongoDB подключен"))
+.catch(err => console.log("❌ Ошибка MongoDB:", err));
 
 // схема
 const listingSchema = new mongoose.Schema({
   title: String,
   price: Number,
   city: String,
-  description: String
+  description: String,
 });
 
 const Listing = mongoose.model("Listing", listingSchema);
 
-// ПРОВЕРКА СЕРВЕРА
-app.get("/", (req, res) => {
-  res.send("API работает 🚀");
-});
-
-// ПОЛУЧИТЬ ВСЕ (исправленный)
+// GET
 app.get("/listings", async (req, res) => {
   try {
-    const data = await Listing.find().lean();
+    const data = await Listing.find();
     res.json(data);
   } catch (err) {
-    console.error("Ошибка GET:", err);
     res.status(500).json({
       error: "Ошибка получения данных",
       details: err.message
@@ -48,7 +42,7 @@ app.get("/listings", async (req, res) => {
   }
 });
 
-// ДОБАВИТЬ
+// POST
 app.post("/listings", async (req, res) => {
   try {
     const { title, price, city, description } = req.body;
@@ -68,7 +62,6 @@ app.post("/listings", async (req, res) => {
     res.json(newItem);
 
   } catch (err) {
-    console.error("Ошибка POST:", err);
     res.status(500).json({
       error: "Ошибка сервера",
       details: err.message
@@ -76,13 +69,12 @@ app.post("/listings", async (req, res) => {
   }
 });
 
-// УДАЛИТЬ
+// DELETE
 app.delete("/listings/:id", async (req, res) => {
   try {
     await Listing.findByIdAndDelete(req.params.id);
     res.json({ success: true });
   } catch (err) {
-    console.error("Ошибка DELETE:", err);
     res.status(500).json({
       error: "Ошибка удаления",
       details: err.message
@@ -92,5 +84,5 @@ app.delete("/listings/:id", async (req, res) => {
 
 // запуск
 app.listen(PORT, () => {
-  console.log("Server started on port " + PORT);
+  console.log("🚀 Server started on port " + PORT);
 });
