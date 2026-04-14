@@ -11,13 +11,22 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// MongoDB подключение (ИСПРАВЛЕНО)
+// ✅ Подключение к MongoDB (исправленное)
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-})
-.then(() => console.log("✅ MongoDB подключен"))
-.catch(err => console.log("❌ Ошибка MongoDB:", err));
+  serverSelectionTimeoutMS: 5000
+});
+
+const db = mongoose.connection;
+
+db.on("error", (err) => {
+  console.log("❌ Ошибка MongoDB:", err);
+});
+
+db.once("open", () => {
+  console.log("✅ MongoDB подключен");
+});
 
 // схема
 const listingSchema = new mongoose.Schema({
@@ -29,15 +38,21 @@ const listingSchema = new mongoose.Schema({
 
 const Listing = mongoose.model("Listing", listingSchema);
 
+// тестовый роут
+app.get("/", (req, res) => {
+  res.send("API работает");
+});
+
 // GET
 app.get("/listings", async (req, res) => {
   try {
-    const data = await Listing.find();
+    const data = await Listing.find().maxTimeMS(5000);
     res.json(data);
   } catch (err) {
+    console.log("Ошибка GET:", err);
     res.status(500).json({
       error: "Ошибка получения данных",
-      details: err.message
+      details: err.message,
     });
   }
 });
@@ -55,17 +70,15 @@ app.post("/listings", async (req, res) => {
       title,
       price,
       city,
-      description
+      description,
     });
 
     await newItem.save();
-    res.json(newItem);
 
+    res.json(newItem);
   } catch (err) {
-    res.status(500).json({
-      error: "Ошибка сервера",
-      details: err.message
-    });
+    console.log("Ошибка POST:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
   }
 });
 
@@ -75,14 +88,12 @@ app.delete("/listings/:id", async (req, res) => {
     await Listing.findByIdAndDelete(req.params.id);
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({
-      error: "Ошибка удаления",
-      details: err.message
-    });
+    console.log("Ошибка DELETE:", err);
+    res.status(500).json({ error: "Ошибка удаления" });
   }
 });
 
 // запуск
 app.listen(PORT, () => {
-  console.log("🚀 Server started on port " + PORT);
+  console.log("🚀 Сервер запущен на порту " + PORT);
 });
