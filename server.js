@@ -1,90 +1,60 @@
-require("dotenv").config();
-
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const multer = require("multer");
+const path = require("path");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
 app.use(cors());
 app.use(express.json());
 
-// ✅ Подключение к MongoDB (БЕЗ СТАРЫХ ОПЦИЙ!)
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB подключена"))
-  .catch(err => console.log("❌ Ошибка MongoDB:", err));
+app.use("/uploads", express.static("uploads"));
 
-// ✅ Схема
-const listingSchema = new mongoose.Schema({
+const storage = multer.diskStorage({
+  destination: "./uploads",
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage });
+
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("MongoDB подключена"))
+.catch(err => console.log(err));
+
+const Listing = mongoose.model("Listing", {
   title: String,
   price: Number,
   city: String,
-  description: String
+  description: String,
+  image: String
 });
 
-const Listing = mongoose.model("Listing", listingSchema);
-
-// ✅ Проверка
-app.get("/", (req, res) => {
-  res.send("API работает 🚀");
-});
-
-// ✅ Получить все
 app.get("/listings", async (req, res) => {
-  try {
-    const data = await Listing.find();
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: "Ошибка получения данных" });
-  }
+  const data = await Listing.find();
+  res.json(data);
 });
 
-// ✅ Добавить
-app.post("/listings", async (req, res) => {
-  try {
-    const { title, price, city, description } = req.body;
+app.post("/listings", upload.single("image"), async (req, res) => {
+  const { title, price, city, description } = req.body;
 
-    if (!title || !price) {
-      return res.status(400).json({ error: "Заполните поля" });
-    }
+  const listing = new Listing({
+    title,
+    price,
+    city,
+    description,
+    image: req.file ? req.file.filename : null
+  });
 
-    const newItem = new Listing({ title, price, city, description });
-    await newItem.save();
-
-    res.json(newItem);
-  } catch (err) {
-    res.status(500).json({ error: "Ошибка сервера" });
-  }
+  await listing.save();
+  res.json({ message: "Добавлено" });
 });
 
-// ✅ Удалить
 app.delete("/listings/:id", async (req, res) => {
-  try {
-    await Listing.findByIdAndDelete(req.params.id);
-    res.json({ message: "Удалено" });
-  } catch (err) {
-    res.status(500).json({ error: "Ошибка удаления" });
-  }
+  await Listing.findByIdAndDelete(req.params.id);
+  res.json({ message: "Удалено" });
 });
 
-// 🔥 ВОТ ТО, ЧЕГО У ТЕБЯ НЕ БЫЛО
-app.get("/seed", async (req, res) => {
-  try {
-    await Listing.deleteMany();
-
-    await Listing.create([
-      { title: "Дом", price: 100000, city: "Ташкент", description: "Красивый дом" },
-      { title: "Квартира", price: 50000, city: "Самарканд", description: "Центр города" }
-    ]);
-
-    res.json({ message: "Данные добавлены" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 🚀 запуск
-app.listen(PORT, () => {
-  console.log("Сервер запущен на порту " + PORT);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Сервер запущен"));});

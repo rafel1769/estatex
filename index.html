@@ -8,12 +8,7 @@
     body {
       font-family: Arial;
       background: #f5f5f5;
-      margin: 0;
       padding: 20px;
-    }
-
-    h1 {
-      text-align: center;
     }
 
     .container {
@@ -27,6 +22,12 @@
       margin-top: 10px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    img {
+      width: 100%;
+      border-radius: 10px;
+      margin-bottom: 10px;
     }
 
     input {
@@ -70,6 +71,8 @@
 <input placeholder="Город" id="city">
 <input placeholder="Описание" id="description">
 
+<input type="file" id="image">
+
 <button onclick="addListing()">Добавить</button>
 
 </div>
@@ -77,6 +80,7 @@
 <script>
 const API = "https://estatex-3bez.onrender.com";
 
+// 📥 загрузка
 async function loadListings() {
   const res = await fetch(API + "/listings");
   const data = await res.json();
@@ -87,6 +91,7 @@ async function loadListings() {
   data.forEach(item => {
     list.innerHTML += `
       <div class="card">
+        ${item.image ? `<img src="${API}/uploads/${item.image}">` : ""}
         <b>${item.title}</b> - $${item.price}<br>
         ${item.city}<br>
         ${item.description}<br>
@@ -96,28 +101,29 @@ async function loadListings() {
   });
 }
 
+// ➕ добавление с фото
 async function addListing() {
-  const title = document.getElementById("title").value;
-  const price = document.getElementById("price").value;
-  const city = document.getElementById("city").value;
-  const description = document.getElementById("description").value;
+  const formData = new FormData();
+
+  formData.append("title", document.getElementById("title").value);
+  formData.append("price", document.getElementById("price").value);
+  formData.append("city", document.getElementById("city").value);
+  formData.append("description", document.getElementById("description").value);
+
+  const file = document.getElementById("image").files[0];
+  if (file) {
+    formData.append("image", file);
+  }
 
   await fetch(API + "/listings", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      title,
-      price: Number(price),
-      city,
-      description
-    })
+    body: formData
   });
 
   loadListings();
 }
 
+// ❌ удалить
 async function deleteListing(id) {
   await fetch(API + "/listings/" + id, {
     method: "DELETE"
