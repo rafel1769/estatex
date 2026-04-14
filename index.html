@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>ESTATEX</title>
+  <meta charset="UTF-8">
+  <title>ESTATEX</title>
 </head>
+
 <body>
 
 <h1>ESTATEX</h1>
@@ -22,8 +23,9 @@
 <button onclick="addListing()">Добавить</button>
 
 <script>
-const API = "https://estatex-3bez.onrender.com";
+const API = "https://estatex-3bez.onrender.com"; // ✅ ВАЖНО
 
+// Получить объявления
 async function loadListings() {
   const res = await fetch(API + "/listings");
   const data = await res.json();
@@ -33,17 +35,18 @@ async function loadListings() {
 
   data.forEach(item => {
     list.innerHTML += `
-      <div>
+      <div style="margin-bottom:20px;">
         <b>${item.title}</b> - $${item.price}<br>
         ${item.city}<br>
         ${item.description}<br>
         <button onclick="deleteListing('${item._id}')">Удалить</button>
-        <hr>
       </div>
+      <hr>
     `;
   });
 }
 
+// Добавить объявление
 async function addListing() {
   const title = document.getElementById("title").value;
   const price = document.getElementById("price").value;
@@ -66,6 +69,7 @@ async function addListing() {
   loadListings();
 }
 
+// Удалить объявление
 async function deleteListing(id) {
   await fetch(API + "/listings/" + id, {
     method: "DELETE"
