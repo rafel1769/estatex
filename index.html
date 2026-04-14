@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>ESTATEX</title>
+<meta charset="UTF-8">
+<title>ESTATEX</title>
 </head>
 <body>
 
-<h1>🏠 ESTATEX</h1>
+<h1>ESTATEX</h1>
 
 <button onclick="loadListings()">Показать объявления</button>
 
 <div id="list"></div>
-
-<hr>
 
 <h2>Добавить объявление</h2>
 
@@ -37,8 +35,8 @@ async function loadListings() {
     list.innerHTML += `
       <div>
         <b>${item.title}</b> - $${item.price}<br>
-        📍 ${item.city}<br>
-        ✏️ ${item.description}<br>
+        ${item.city}<br>
+        ${item.description}<br>
         <button onclick="deleteListing('${item._id}')">Удалить</button>
         <hr>
       </div>
@@ -52,7 +50,7 @@ async function addListing() {
   const city = document.getElementById("city").value;
   const description = document.getElementById("description").value;
 
-  const res = await fetch(API + "/listings", {
+  await fetch(API + "/listings", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -64,9 +62,6 @@ async function addListing() {
       description
     })
   });
-
-  const data = await res.json();
-  console.log(data);
 
   loadListings();
 }
