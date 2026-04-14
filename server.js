@@ -3,26 +3,37 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
+// создаём папку uploads если её нет
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
+
+// раздача файлов
 app.use("/uploads", express.static("uploads"));
 
+// настройка загрузки
 const storage = multer.diskStorage({
-  destination: "./uploads",
+  destination: "uploads",
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
+    cb(null, Date.now() + "-" + file.originalname);
   }
 });
 
 const upload = multer({ storage });
 
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("MongoDB подключена"))
-.catch(err => console.log(err));
+// подключение к базе
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log("MongoDB подключено"))
+  .catch(err => console.log(err));
 
+// модель
 const Listing = mongoose.model("Listing", {
   title: String,
   price: Number,
@@ -31,30 +42,38 @@ const Listing = mongoose.model("Listing", {
   image: String
 });
 
+// получить
 app.get("/listings", async (req, res) => {
   const data = await Listing.find();
   res.json(data);
 });
 
+// добавить
 app.post("/listings", upload.single("image"), async (req, res) => {
-  const { title, price, city, description } = req.body;
+  try {
+    const { title, price, city, description } = req.body;
 
-  const listing = new Listing({
-    title,
-    price,
-    city,
-    description,
-    image: req.file ? req.file.filename : null
-  });
+    const listing = new Listing({
+      title,
+      price,
+      city,
+      description,
+      image: req.file ? req.file.filename : ""
+    });
 
-  await listing.save();
-  res.json({ message: "Добавлено" });
+    await listing.save();
+    res.json({ message: "добавлено" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
+// удалить
 app.delete("/listings/:id", async (req, res) => {
   await Listing.findByIdAndDelete(req.params.id);
-  res.json({ message: "Удалено" });
+  res.json({ message: "удалено" });
 });
 
+// запуск
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Сервер запущен"));});
+app.listen(PORT, () => console.log("сервер запущен"));
