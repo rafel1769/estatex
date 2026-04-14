@@ -7,8 +7,12 @@
   <style>
     body {
       font-family: Arial;
-      background: #f5f5f5;
       padding: 20px;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      text-align: center;
     }
 
     .container {
@@ -19,7 +23,7 @@
     .card {
       background: white;
       padding: 15px;
-      margin-top: 10px;
+      margin-bottom: 10px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
@@ -33,23 +37,31 @@
     input {
       width: 100%;
       padding: 10px;
-      margin-top: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+      margin-bottom: 5px;
     }
 
     button {
+      width: 100%;
       padding: 10px;
-      margin-top: 10px;
+      margin-top: 5px;
       border: none;
-      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .add {
       background: black;
       color: white;
-      width: 100%;
     }
 
     .delete {
       background: red;
+      color: white;
+    }
+
+    .load {
+      background: black;
+      color: white;
+      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -57,30 +69,26 @@
 <body>
 
 <div class="container">
+  <h1>ESTATEX</h1>
 
-<h1>ESTATEX</h1>
+  <button class="load" onclick="loadListings()">Показать объявления</button>
 
-<button onclick="loadListings()">Показать объявления</button>
+  <div id="list"></div>
 
-<div id="list"></div>
+  <h2>Добавить объявление</h2>
 
-<h2>Добавить объявление</h2>
+  <input id="title" placeholder="Название">
+  <input id="price" placeholder="Цена">
+  <input id="city" placeholder="Город">
+  <input id="description" placeholder="Описание">
+  <input id="image" type="file">
 
-<input placeholder="Название" id="title">
-<input placeholder="Цена" id="price">
-<input placeholder="Город" id="city">
-<input placeholder="Описание" id="description">
-
-<input type="file" id="image">
-
-<button onclick="addListing()">Добавить</button>
-
+  <button class="add" onclick="addListing()">Добавить</button>
 </div>
 
 <script>
 const API = "https://estatex-3bez.onrender.com";
 
-// 📥 загрузка
 async function loadListings() {
   const res = await fetch(API + "/listings");
   const data = await res.json();
@@ -101,7 +109,6 @@ async function loadListings() {
   });
 }
 
-// ➕ добавление с фото
 async function addListing() {
   const formData = new FormData();
 
@@ -111,6 +118,7 @@ async function addListing() {
   formData.append("description", document.getElementById("description").value);
 
   const file = document.getElementById("image").files[0];
+
   if (file) {
     formData.append("image", file);
   }
@@ -123,7 +131,6 @@ async function addListing() {
   loadListings();
 }
 
-// ❌ удалить
 async function deleteListing(id) {
   await fetch(API + "/listings/" + id, {
     method: "DELETE"
