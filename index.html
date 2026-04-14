@@ -3,9 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <title>ESTATEX</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 5px;
+      background: black;
+      color: white;
+      width: 100%;
+    }
+
+    .delete {
+      background: red;
+    }
+  </style>
 </head>
 
 <body>
+
+<div class="container">
 
 <h1>ESTATEX</h1>
 
@@ -15,17 +65,18 @@
 
 <h2>Добавить объявление</h2>
 
-<input placeholder="Название" id="title"><br>
-<input placeholder="Цена" id="price"><br>
-<input placeholder="Город" id="city"><br>
-<input placeholder="Описание" id="description"><br>
+<input placeholder="Название" id="title">
+<input placeholder="Цена" id="price">
+<input placeholder="Город" id="city">
+<input placeholder="Описание" id="description">
 
 <button onclick="addListing()">Добавить</button>
 
-<script>
-const API = "https://estatex-3bez.onrender.com"; // ✅ ВАЖНО
+</div>
 
-// Получить объявления
+<script>
+const API = "https://estatex-3bez.onrender.com";
+
 async function loadListings() {
   const res = await fetch(API + "/listings");
   const data = await res.json();
@@ -35,18 +86,16 @@ async function loadListings() {
 
   data.forEach(item => {
     list.innerHTML += `
-      <div style="margin-bottom:20px;">
+      <div class="card">
         <b>${item.title}</b> - $${item.price}<br>
         ${item.city}<br>
         ${item.description}<br>
-        <button onclick="deleteListing('${item._id}')">Удалить</button>
+        <button class="delete" onclick="deleteListing('${item._id}')">Удалить</button>
       </div>
-      <hr>
     `;
   });
 }
 
-// Добавить объявление
 async function addListing() {
   const title = document.getElementById("title").value;
   const price = document.getElementById("price").value;
@@ -69,7 +118,6 @@ async function addListing() {
   loadListings();
 }
 
-// Удалить объявление
 async function deleteListing(id) {
   await fetch(API + "/listings/" + id, {
     method: "DELETE"
