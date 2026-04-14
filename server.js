@@ -11,34 +11,24 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// ✅ Подключение к MongoDB (исправленное)
+// ✅ ПРАВИЛЬНОЕ подключение Mongo (без старых параметров)
 mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
   serverSelectionTimeoutMS: 5000
-});
-
-const db = mongoose.connection;
-
-db.on("error", (err) => {
-  console.log("❌ Ошибка MongoDB:", err);
-});
-
-db.once("open", () => {
-  console.log("✅ MongoDB подключен");
-});
+})
+.then(() => console.log("✅ MongoDB подключен"))
+.catch(err => console.log("❌ Ошибка MongoDB:", err));
 
 // схема
 const listingSchema = new mongoose.Schema({
   title: String,
   price: Number,
   city: String,
-  description: String,
+  description: String
 });
 
 const Listing = mongoose.model("Listing", listingSchema);
 
-// тестовый роут
+// тест
 app.get("/", (req, res) => {
   res.send("API работает");
 });
@@ -46,13 +36,13 @@ app.get("/", (req, res) => {
 // GET
 app.get("/listings", async (req, res) => {
   try {
-    const data = await Listing.find().maxTimeMS(5000);
+    const data = await Listing.find();
     res.json(data);
   } catch (err) {
-    console.log("Ошибка GET:", err);
+    console.log("GET ошибка:", err);
     res.status(500).json({
       error: "Ошибка получения данных",
-      details: err.message,
+      details: err.message
     });
   }
 });
@@ -70,14 +60,14 @@ app.post("/listings", async (req, res) => {
       title,
       price,
       city,
-      description,
+      description
     });
 
     await newItem.save();
 
     res.json(newItem);
   } catch (err) {
-    console.log("Ошибка POST:", err);
+    console.log("POST ошибка:", err);
     res.status(500).json({ error: "Ошибка сервера" });
   }
 });
@@ -88,7 +78,7 @@ app.delete("/listings/:id", async (req, res) => {
     await Listing.findByIdAndDelete(req.params.id);
     res.json({ success: true });
   } catch (err) {
-    console.log("Ошибка DELETE:", err);
+    console.log("DELETE ошибка:", err);
     res.status(500).json({ error: "Ошибка удаления" });
   }
 });
