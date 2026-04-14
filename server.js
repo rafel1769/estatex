@@ -34,13 +34,17 @@ app.get("/", (req, res) => {
   res.send("API работает 🚀");
 });
 
-// ПОЛУЧИТЬ ВСЕ
+// ПОЛУЧИТЬ ВСЕ (исправленный)
 app.get("/listings", async (req, res) => {
   try {
-    const data = await Listing.find();
+    const data = await Listing.find().lean();
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: "Ошибка получения данных" });
+    console.error("Ошибка GET:", err);
+    res.status(500).json({
+      error: "Ошибка получения данных",
+      details: err.message
+    });
   }
 });
 
@@ -64,8 +68,11 @@ app.post("/listings", async (req, res) => {
     res.json(newItem);
 
   } catch (err) {
-    console.log("Ошибка:", err);
-    res.status(500).json({ error: "Ошибка сервера" });
+    console.error("Ошибка POST:", err);
+    res.status(500).json({
+      error: "Ошибка сервера",
+      details: err.message
+    });
   }
 });
 
@@ -75,7 +82,11 @@ app.delete("/listings/:id", async (req, res) => {
     await Listing.findByIdAndDelete(req.params.id);
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: "Ошибка удаления" });
+    console.error("Ошибка DELETE:", err);
+    res.status(500).json({
+      error: "Ошибка удаления",
+      details: err.message
+    });
   }
 });
 
